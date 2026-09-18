@@ -97,5 +97,29 @@ class SchedulesController < ApplicationController
     end
   end
 
+  def parse_date(str)
+    return nil unless str.present?
+    if str.include?("/")
+      m, d, y = str.split("/")
+      "#{y}-#{m.rjust(2,'0')}-#{d.rjust(2,'0')}"
+    else
+      str.strip
+    end
+  rescue
+    nil
+  end
+
+  def parse_time(str)
+    return nil unless str.present?
+    if str.match?(/AM|PM/i)
+      t = Time.parse(str)
+      t.strftime("%H:%M")
+    else
+      str.strip[0..4]
+    end
+  rescue
+    nil
+  end
+
 
 end
