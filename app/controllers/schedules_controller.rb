@@ -45,7 +45,7 @@ class SchedulesController < ApplicationController
       send_data build_csv(shifts), filename: "work-schedule.csv", 
       type: "text/csv"
     else
-      send_data build_csv(shifts), filename: "work-schedule.ics", 
+      send_data build_ics(shifts), filename: "work-schedule.ics", 
       type: "text/calendar"
     end
   end
@@ -150,11 +150,22 @@ class SchedulesController < ApplicationController
       end_date = shift["end"].gsub(/[-:T]/,"").insert(8, "T")[0..14] + "00"
       title = shift["title"].to_s.gsub(/[\\;,]/) { |c| "\\#{c}" }
       now = Time.now.utc.strftime("%Y%m%dT%H%M%SZ")
-      lines = += ["BEGIN:VEVENT", "DTSTART:#{start_dt}", "DTEND:#{end_dt}",
+      lines += ["BEGIN:VEVENT", "DTSTART:#{start_dt}", "DTEND:#{end_dt}",
       "SUMMARY:#{title}", "UID:ws-#{i}-#{Time.now.to_i}@app",
       "DTSTAMP:#{now}", "END:VEVENT"]
     end
     (lines << "END:VCALENDAR").join("\r\n")
+  end
+
+  def build_csv
+    CSV.generate do |csv|
+      csv << ["Subject", "Start Date", "Start Time", "End Date", "End Time", "All Day Event"]
+      shifts.each do |s|
+        sd, st = s["start"].split("T")
+        ed, et = s["end"].split("T")
+        csv << [s["title"] || "Work Shift", sd, st, ed, et, "False"]
+      end
+    end
   end
 
 end
