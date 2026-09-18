@@ -13,8 +13,8 @@ class SchedulesController < ApplicationController
 
   def create
     file = params[:file]
-    return render json: {error: "No file provided" }, status: 422 unless file
-    
+    return render json: { error: "No file provided" }, status: 422 unless file
+
     if csv?(file)
       shifts = parse_csv(file.read)
     else
@@ -22,7 +22,7 @@ class SchedulesController < ApplicationController
     end
 
     shifts = Schedule.apply_titles(shifts)
- 
+
     @schedule = Schedule.create!(
       original_filename: file.original_filename,
       upload_type: csv?(file) ? "csv" : "image",
@@ -45,10 +45,10 @@ class SchedulesController < ApplicationController
     shifts = params[:shifts] ? JSON.parse(params[:shifts]) : @schedule.shifts
 
     if params_format == "csv"
-      send_data build_csv(shifts), filename: "work-schedule.csv", 
+      send_data build_csv(shifts), filename: "work-schedule.csv",
       type: "text/csv"
     else
-      send_data build_ics(shifts), filename: "work-schedule.ics", 
+      send_data build_ics(shifts), filename: "work-schedule.ics",
       type: "text/calendar"
     end
   end
@@ -58,12 +58,12 @@ class SchedulesController < ApplicationController
     redirect_to root_path, notice: "Schedule deleted"
   end
 
-  private 
+  private
 
   def csv?(file)
     file.content_type == "text/csv" || file.original_filename.end_with?(".csv")
   end
-  
+
   def analyse_image(file)
     b64 = Base64.strict_encode64(file.read)
     mime = file.content_type
@@ -73,7 +73,7 @@ class SchedulesController < ApplicationController
       parameters: {
         model: "claude-sonnet-4-6",
         max_tokens: 1000,
-        messages: [{
+        messages: [ {
           role: "user",
           content: [
             { type: "image", source: { type: "base64", media_type: mime, data: b64 } },
@@ -89,7 +89,7 @@ class SchedulesController < ApplicationController
               Do NOT include days off or blank entries. Return [] if none found.
             PROMPT
           ]
-        }]
+        } ]
       }
     )
     text = Array(response["content"]).select { |b| b["type"] == "text" }.map { |b| b["text"] }.join
@@ -110,9 +110,9 @@ class SchedulesController < ApplicationController
 
   def parse_csv(text)
     rows = CSV.parse(text, headers: true)
-    headers = rows.headers.map { |h| [h.to_s.strip.downcase]}
+    headers = rows.headers.map { |h| [ h.to_s.strip.downcase ] }
 
-    find = ->(keys) { keys.map { |k| headers[k] }.compact.first } 
+    find = ->(keys) { keys.map { |k| headers[k] }.compact.first }
 
     title_col = find.call(%w[subject title])
     start_date_col = find.call(%w[start\ date startdate])
@@ -139,7 +139,7 @@ class SchedulesController < ApplicationController
     return nil unless str.present?
     if str.include?("/")
       m, d, y = str.split("/")
-      "#{y}-#{m.rjust(2,'0')}-#{d.rjust(2,'0')}"
+      "#{y}-#{m.rjust(2, '0')}-#{d.rjust(2, '0')}"
     else
       str.strip
     end
@@ -164,25 +164,24 @@ class SchedulesController < ApplicationController
     WorkScheduleApp//EN CALSCALE:GEORGIAN METHOD:PUBLISH]
     shifts.each_with_index do |shift, index|
       start_date = shift["start"].gsub(/[-:T]/, "").insert(8, "T")[0..14] + "00"
-      end_date = shift["end"].gsub(/[-:T]/,"").insert(8, "T")[0..14] + "00"
+      end_date = shift["end"].gsub(/[-:T]/, "").insert(8, "T")[0..14] + "00"
       title = shift["title"].to_s.gsub(/[\\;,]/) { |c| "\\#{c}" }
       now = Time.now.utc.strftime("%Y%m%dT%H%M%SZ")
-      lines += ["BEGIN:VEVENT", "DTSTART:#{start_dt}", "DTEND:#{end_dt}",
+      lines += [ "BEGIN:VEVENT", "DTSTART:#{start_dt}", "DTEND:#{end_dt}",
       "SUMMARY:#{title}", "UID:ws-#{i}-#{Time.now.to_i}@app",
-      "DTSTAMP:#{now}", "END:VEVENT"]
+      "DTSTAMP:#{now}", "END:VEVENT" ]
     end
     (lines << "END:VCALENDAR").join("\r\n")
   end
 
   def build_csv
     CSV.generate do |csv|
-      csv << ["Subject", "Start Date", "Start Time", "End Date", "End Time", "All Day Event"]
+      csv << [ "Subject", "Start Date", "Start Time", "End Date", "End Time", "All Day Event" ]
       shifts.each do |s|
         sd, st = s["start"].split("T")
         ed, et = s["end"].split("T")
-        csv << [s["title"] || "Work Shift", sd, st, ed, et, "False"]
+        csv << [ s["title"] || "Work Shift", sd, st, ed, et, "False" ]
       end
     end
   end
-
 end
