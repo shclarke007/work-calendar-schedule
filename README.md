@@ -1,4 +1,4 @@
-# Work Scheduler
+# Work Schedule Exporter
 
 Turn a photo or CSV of your work roster into calendar files. Upload a screenshot, review the extracted shifts, then download an ICS file for Google / Apple / Outlook or a CSV for Sheets.
 
