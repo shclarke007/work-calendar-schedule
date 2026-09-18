@@ -39,6 +39,10 @@ class SchedulesController < ApplicationController
   end
 
   private 
+
+  def csv?(file)
+    file.content_type == "text/csv" || file.original_filename.end_with?(".csv")
+  end
   
   def analyse_image(file)
     b64 = Base64.strict_encode64(file.read)
