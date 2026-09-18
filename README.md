@@ -40,7 +40,7 @@ Download `work-schedule.ics` for calendar apps or `work-schedule.csv` for spread
 ## Setup
 
 ```bash
-git clone <repo-url>
+git clone (https://github.com/shclarke007/work-calendar-schedule)
 cd work-scheduler
 bin/setup
 ```
@@ -51,10 +51,10 @@ Create a `.env` in the project root (this file is gitignored):
 ANTHROPIC_API_KEY=sk-ant-your-key
 ```
 
-Start the app (Puma plus Tailwind watch):
+Start the app (Puma):
 
 ```bash
-bin/dev
+rails server
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
