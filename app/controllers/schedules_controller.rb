@@ -21,8 +21,8 @@ class SchedulesController < ApplicationController
       shifts = analyse_image(file)
     end
 
-    shifts = Schedule.apply_title(shifts)
-
+    shifts = Schedule.apply_titles(shifts)
+ 
     @schedule = Schedule.create!(
       original_filename: file.original_filename,
       upload_type: csv?(file) ? "csv" : "image",
@@ -30,7 +30,10 @@ class SchedulesController < ApplicationController
     )
 
     render json: { id: @schedule.id, shifts: shifts }
+  rescue Faraday::Error => e
+    render json: { error: anthropic_error_message(e) }, status: 422
   rescue => e
+    Rails.logger.error("#{e.class}: #{e.message}\n#{e.backtrace&.first(8)&.join("\n")}")
     render json: { error: e.message }, status: 422
   end
 
@@ -41,7 +44,7 @@ class SchedulesController < ApplicationController
     # Allow edits passed from the frontend
     shifts = params[:shifts] ? JSON.parse(params[:shifts]) : @schedule.shifts
 
-    if params_format = "csv"
+    if params_format == "csv"
       send_data build_csv(shifts), filename: "work-schedule.csv", 
       type: "text/csv"
     else
@@ -65,30 +68,44 @@ class SchedulesController < ApplicationController
     b64 = Base64.strict_encode64(file.read)
     mime = file.content_type
 
-    client = Anthropic::Client.new(api_key: ENV["ANTHROPIC_API_KEY"])
-    response = client.message(
-      model: "claude-sonnet-4-6",
-      max_tokens: 1000, 
-      messages: [{
-        role: "user",
-        content: [
-          { type: "image", source: { type: "base64", media_type: mime, data: b64 } },
-          { type: "text", text: <<~PROMPT }
-            Analyse this work schedule image and extract all shifts.
-            Return only a valid JSON array - no markdown, no explanation.
-            Each object must have: 
-            - "title": string (shift type if visible, else "work shift")
-            - "start": "YYYY-MM-DDTHH:MM" (24hr)
-            - "end": "YYYY-MM-DDTHH:MM" (24hr)
-            If no year is shown, use the next upcoming date from today (#{Date.today}).
-            Default times if missing: 09:00-17:00.
-            Do NOT include days off or blank entries. Return [] if none found.
-          PROMPT
-        ]
-      }]
+    client = Anthropic::Client.new(access_token: ENV["ANTHROPIC_API_KEY"], log_errors: true)
+    response = client.messages(
+      parameters: {
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        messages: [{
+          role: "user",
+          content: [
+            { type: "image", source: { type: "base64", media_type: mime, data: b64 } },
+            { type: "text", text: <<~PROMPT }
+              Analyse this work schedule image and extract all shifts.
+              Return only a valid JSON array - no markdown, no explanation.
+              Each object must have:
+              - "title": string (shift type if visible, else "work shift")
+              - "start": "YYYY-MM-DDTHH:MM" (24hr)
+              - "end": "YYYY-MM-DDTHH:MM" (24hr)
+              If no year is shown, use the next upcoming date from today (#{Date.today}).
+              Default times if missing: 09:00-17:00.
+              Do NOT include days off or blank entries. Return [] if none found.
+            PROMPT
+          ]
+        }]
+      }
     )
-    text = response.content.select { |b| b.type == "text" }.map(&:text).join
-    JSON.parse(text.gsub(/```json|```/,"").strip)
+    text = Array(response["content"]).select { |b| b["type"] == "text" }.map { |b| b["text"] }.join
+    json = text[/\[[\s\S]*\]/] || text.gsub(/```json|```/, "").strip
+    JSON.parse(json)
+  end
+
+  def anthropic_error_message(error)
+    body = error.response&.[](:body)
+    message = if body.is_a?(Hash)
+      body.dig("error", "message") || body.to_json
+    else
+      body.presence
+    end
+    Rails.logger.error("Anthropic error: #{message || error.message}")
+    message.presence || error.message
   end
 
   def parse_csv(text)
