@@ -10,17 +10,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_26_151556) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_18_161749) do
   # These are extensions that must be enabled in order to support this database
-  enable_extension "plpgsql"
+  enable_extension "pg_catalog.plpgsql"
 
   create_table "schedules", force: :cascade do |t|
-    t.string "original_filename"
-    t.string "upload_type"
-    t.string "string"
-    t.jsonb "shifts"
-    t.text "raw_text"
     t.datetime "created_at", null: false
+    t.string "original_filename"
+    t.text "raw_text"
+    t.jsonb "shifts"
+    t.string "string"
     t.datetime "updated_at", null: false
+    t.string "upload_type"
   end
 end
