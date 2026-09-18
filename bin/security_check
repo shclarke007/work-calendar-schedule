@@ -1,0 +1,20 @@
+set -e
+
+echo "==== Updating advisory database ===="
+bundle audit update
+
+echo ""
+echo "==== Checking gems for vulnerabilities ===="
+bundle audit check
+
+echo ""
+echo "==== Running Brakeman ===="
+brakeman -q
+
+echo ""
+echo "==== Running RuboCop ===="
+rubocop
+
+echo ""
+echo "==== All checks passed ===="
+
