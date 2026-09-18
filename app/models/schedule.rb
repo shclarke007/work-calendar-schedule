@@ -4,7 +4,7 @@ class Schedule < ApplicationRecord
   SHIFT_WINDOWS = [
     {title: "Early Shift", from: [8, 0], to: [12, 0] },
     {title: "Mid Shift", from: [12, 01], to: [16, 0] },
-    {title: "Late Shift", from: [16, 01], to: [4, 0],  wraps_midnight: true}
+    {title: "Late Shift", from: [20, 00], to: [4, 0],  wraps_midnight: true}
   ].freeze
 
   def self.apply_titles(shifts)
