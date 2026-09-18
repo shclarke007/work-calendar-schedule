@@ -2,7 +2,7 @@
 
 Turn a photo or CSV of your work roster into calendar files. Upload a screenshot, review the extracted shifts, then download an ICS file for Google / Apple / Outlook or a CSV for Sheets.
 
-Built with Rails 7.2, Tailwind, and Claude (`claude-sonnet-4-6`) for image analysis.
+Built with Rails 8.1, Tailwind, and Claude (`claude-sonnet-4-6`) for image analysis.
 
 ## Screenshots
 
@@ -68,7 +68,7 @@ If you already have a server running, `bin/rails server` on port 3000 is enough;
 
 | Piece | Choice |
 | --- | --- |
-| App | Rails 7.2 |
+| App | Rails 8.1 |
 | DB | PostgreSQL (`jsonb` shift lists) |
 | CSS | Tailwind |
 | Vision | Anthropic Claude via `ruby-anthropic` |
