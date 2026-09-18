@@ -76,10 +76,6 @@ GEM
       tzinfo (~> 2.0, >= 2.0.5)
     addressable (2.9.0)
       public_suffix (>= 2.0.2, < 8.0)
-    anthropic (0.4.1)
-      event_stream_parser (>= 0.3.0, < 2.0.0)
-      faraday (>= 1)
-      faraday-multipart (>= 1)
     ast (2.4.3)
     base64 (0.3.0)
     benchmark (0.5.0)
@@ -90,6 +86,7 @@ GEM
     brakeman (7.1.1)
       racc
     builder (3.3.0)
+    byebug (12.0.0)
     capybara (3.40.0)
       addressable
       matrix
@@ -277,6 +274,10 @@ GEM
       rubocop (>= 1.72)
       rubocop-performance (>= 1.24)
       rubocop-rails (>= 2.30)
+    ruby-anthropic (0.4.2)
+      event_stream_parser (>= 0.3.0, < 2.0.0)
+      faraday (>= 1)
+      faraday-multipart (>= 1)
     ruby-progressbar (1.13.0)
     rubyzip (2.4.1)
     securerandom (0.4.1)
@@ -338,9 +339,9 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  anthropic
   bootsnap
   brakeman
+  byebug
   capybara
   debug
   dotenv-rails
@@ -351,6 +352,7 @@ DEPENDENCIES
   puma (>= 5.0)
   rails (~> 7.2.3, >= 7.2.3.2)
   rubocop-rails-omakase
+  ruby-anthropic
   selenium-webdriver
   sprockets-rails
   stimulus-rails
