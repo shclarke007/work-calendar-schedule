@@ -35,7 +35,19 @@ class SchedulesController < ApplicationController
   end
 
   def export
+    @schedule = Schedule.find(params[:id])
+    params_format = params[:format] || "ics"
 
+    # Allow edits passed from the frontend
+    shifts = params[:shifts] ? JSON.parse(params[:shifts]) : @schedule.shifts
+
+    if params_format = "csv"
+      send_data build_csv(shifts), filename: "work-schedule.csv", 
+      type: "text/csv"
+    else
+      send_data build_csv(shifts), filename: "work-schedule.ics", 
+      type: "text/calendar"
+    end
   end
 
   private 
