@@ -142,5 +142,19 @@ class SchedulesController < ApplicationController
     nil
   end
 
+  def build_ics(shifts)
+    lines = %w[BEGIN:VCALENDAR VERSION:2.0 PRODID:-//
+    WorkScheduleApp//EN CALSCALE:GEORGIAN METHOD:PUBLISH]
+    shifts.each_with_index do |shift, index|
+      start_date = shift["start"].gsub(/[-:T]/, "").insert(8, "T")[0..14] + "00"
+      end_date = shift["end"].gsub(/[-:T]/,"").insert(8, "T")[0..14] + "00"
+      title = shift["title"].to_s.gsub(/[\\;,]/) { |c| "\\#{c}" }
+      now = Time.now.utc.strftime("%Y%m%dT%H%M%SZ")
+      lines = += ["BEGIN:VEVENT", "DTSTART:#{start_dt}", "DTEND:#{end_dt}",
+      "SUMMARY:#{title}", "UID:ws-#{i}-#{Time.now.to_i}@app",
+      "DTSTAMP:#{now}", "END:VEVENT"]
+    end
+    (lines << "END:VCALENDAR").join("\r\n")
+  end
 
 end
