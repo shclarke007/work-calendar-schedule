@@ -50,6 +50,11 @@ class SchedulesController < ApplicationController
     end
   end
 
+  def destroy
+    Schedule.find(params[:id]).destroy
+    redirect_to root_path, notice: "Schedule deleted"
+  end
+
   private 
 
   def csv?(file)
